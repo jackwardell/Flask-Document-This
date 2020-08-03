@@ -13,12 +13,24 @@ class Serializable:
         raise NotImplementedError()
 
     def to_dict(self):
+        # print(self.api_format())
+
+        # rv = {}
+        # for k, v in self.api_format().items():
+        #     if isinstance(v, str):
+        #         rv[k] = v
+        #     elif isinstance(v, list):
+        #         rv[k] = [getattr(i, "to_dict", lambda: i)() for i in v]
+        #     else:
+
         rv = {
             i: j
             if isinstance(j, str)
             else j.to_dict()
             if hasattr(j, "to_dict")
-            else [k.to_dict() for k in j]
+            else [getattr(k, "to_dict", lambda: k)() for k in j]
+            if isinstance(j, list)
+            else j
             for i, j in self.api_format().items()
             if j is not None
         }
@@ -646,19 +658,23 @@ class Responses(Serializable):
     # HTTP response codes. Use this field to cover undeclared responses. A
     # Reference Object can link to a response that the OpenAPI Object's
     # components/responses section defines.
-    default = attr.ib(default=None)
+    # todo fix this
+    default = attr.ib(factory=list)
 
     @default.validator
     def validate_default(self, attribute, value):
+        # todo fix this
         if "default" in self.responses and value is not None:
             raise ValueError(
                 "You must put default as a attribute or as a response, " "not both."
             )
 
     def api_format(self):
-        responses = self.responses.copy()
-        if "default" not in responses:
-            responses.update({"default": self.default})
+        # todo fix with above
+        responses = self.default + self.responses
+        # responses = self.responses.copy()
+        # if "default" not in responses:
+        #     responses.update({"default": self.default})
 
         rv = {response.status_code: response for response in responses}
         return rv

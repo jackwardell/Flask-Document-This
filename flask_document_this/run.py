@@ -1,9 +1,9 @@
 from flask import jsonify
 
-from flask_api_docs.document_this import DocumentThis
-from flask_api_docs.factory import Configuration
-from flask_api_docs.factory import Factory
-from flask_api_docs.custom_flask import Flask
+from flask_document_this.document_this import DocumentThis
+from flask_document_this.factory import Configuration
+from flask_document_this.factory import Factory
+from flask_document_this.custom_flask import Flask
 
 document_this = DocumentThis()
 
@@ -53,10 +53,6 @@ def create_app():
     @app.route('/user/<username>', methods=["DELETE"])
     def delete_user(username):
         return jsonify(route='delete user')
-
-    # @app.route("/wagwan", endpoint="wagwan")
-    # def this_is_wagwan():
-    #     return jsonify(wagwan="wagwan")
 
     return app
 

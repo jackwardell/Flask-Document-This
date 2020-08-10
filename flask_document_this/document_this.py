@@ -1,12 +1,12 @@
 import functools
 from typing import Iterable
-
+from collections import defaultdict
 import attr
 from flask import jsonify
 from flask import url_for
 from jinja2 import Template
 
-from flask_api_docs.factory import Factory
+from flask_document_this.factory import Factory
 
 HTTP_METHODS = {
     "GET",
@@ -66,14 +66,17 @@ class MethodOperation:
 
 
 class Routes(Iterable):
-    def __init__(self, routes=None):
-        self.routes = routes or []
+    def __init__(self):
+        self.routes = defaultdict(list)
 
     def add(self, route):
-        self.routes.append(route)
+        return self.routes[route.url].append(route)
 
     def __iter__(self):
         return iter(self.routes)
+
+    def __setitem__(self, route):
+        return self.routes[route.url].append(route)
 
     def to_list(self):
         return [route.to_json() for route in self.routes]
@@ -131,7 +134,6 @@ class DocumentThis:
         if self.name is None:
             self.name = app.name
 
-        # self.api = self.make_open_api_dict()
 
     def add_docs_route(self, app):
         rule = app.config.get("DOCUMENT_RULE")
@@ -168,14 +170,6 @@ class DocumentThis:
             embed()
             return "hello world"
 
-        # app : Flask = app
-        # @app.before_request
-        # def
-
-    # def this(self, func):
-    #     # embed()
-    #     return func
-
     def with_model(self, model):
         def decorator(func):
             document_this(func)
@@ -209,20 +203,34 @@ class DocumentThis:
     @staticmethod
     def make_routes(app):
         routes = Routes()
+        rules = defaultdict(list)
+
         for rule in app.url_map.iter_rules():
             view_func = app.view_functions[rule.endpoint]
             # import IPython; IPython.embed()
             if is_documented(view_func):
-                operations = []
                 for method in rule.methods:
                     if method not in ("OPTIONS", "HEAD"):
-                        method_operation = make_method_operation(
-                            method, rule.rule, rule.endpoint
+                        # rule_map = RuleMap(rule.rule, rule, view_func, method)
+                        # rule_maps.append(rule_map)
+                        rules[rule.url].append(
+                            make_method_operation(method, rule.rule, rule.endpoint)
                         )
-                        operations.append(method_operation)
+        for rule, data in rules.items():
+            route = make_route(rule, rules[rule.url], view_func)
+            routes.add(route)
 
-                route = make_route(rule, operations, view_func)
-                routes.add(route)
+        # if is_documented(view_func):
+        #     operations = []
+        #     for method in rule.methods:
+        #         if method not in ("OPTIONS", "HEAD"):
+        #             method_operation = make_method_operation(
+        #                 method, rule.rule, rule.endpoint
+        #             )
+        #             operations.append(method_operation)
+        #
+        #     route = make_route(rule, operations, view_func)
+        #     routes.add(route)
         return routes
 
     def make_open_api(self):
@@ -236,6 +244,23 @@ class DocumentThis:
 
     def make_open_api_dict2(self):
         return
+
+
+@attr.s
+class RouteX:
+    url = attr.ib()
+    ops = attr.ib()
+    ...
+    "fill in below more features"
+    "route needs to encapsulate all operations"
+
+
+@attr.s
+class RuleMap:
+    url = attr.ib()
+    rule = attr.ib()
+    func = attr.ib()
+    method = attr.ib()
 
 
 # def make_routes_from_app(flask_app):
@@ -261,10 +286,25 @@ def make_route(rule, operations, view_func):
     )
 
 
-class Model:
-    field = {"name": "F", "type": "str"}
+class BaseModel:
+    @property
+    def entity(self):
+        raise NotImplementedError()
 
-    responses = {}
+    @property
+    def fields(self):
+        raise NotImplementedError()
+
+    def find(self, **kwargs):
+        raise NotImplementedError()
+
+
+# class SqlAlchemyModel(BaseModel):
+#
+#     def find(self, **kwargs):
+#         return
+
+# responses = {}
 
 
 class Route:

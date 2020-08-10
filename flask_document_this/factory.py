@@ -1,12 +1,12 @@
-from flask_api_docs.specification import *
-from flask_api_docs.specification import Info
-from flask_api_docs.specification import OpenAPI
-from flask_api_docs.specification import Operation
-from flask_api_docs.specification import Paths
-from flask_api_docs.specification import Response
-from flask_api_docs.specification import Responses
-from flask_api_docs.specification import Server
-from flask_api_docs.specification import Tag
+from flask_document_this.specification import *
+from flask_document_this.specification import Info
+from flask_document_this.specification import OpenAPI
+from flask_document_this.specification import Operation
+from flask_document_this.specification import Paths
+from flask_document_this.specification import Response
+from flask_document_this.specification import Responses
+from flask_document_this.specification import Server
+from flask_document_this.specification import Tag
 
 DEFAULT_OPEN_API_SPECIFICATION_VERSION = "3.0.3"
 DEFAULT_SERVER = Server("/")
